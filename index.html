@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduShare & ATKT Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        .file-preview {
+            max-height: 500px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Loading Spinner -->
+    <div class="loading">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <h1 class="text-2xl font-bold text-center mb-6">EduShare & ATKT Portal</h1>
+            <div class="space-y-4">
+                <input type="text" id="username" placeholder="Username" class="w-full p-2 border rounded">
+                <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded">
+                <select id="userType" class="w-full p-2 border rounded">
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                </select>
+                <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-xl font-bold">EduShare & ATKT Portal</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="userInfo" class="text-gray-600"></span>
+                        <button onclick="logout()" class="text-red-500 hover:text-red-700">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <!-- Teacher Dashboard -->
+            <div id="teacherDashboard" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">Total Students</h3>
+                        <p id="studentCount" class="text-3xl font-bold text-blue-500">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">Total Files</h3>
+                        <p id="fileCount" class="text-3xl font-bold text-green-500">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">ATKT Applications</h3>
+                        <p id="atktCount" class="text-3xl font-bold text-purple-500">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Upload Assignment</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="assignmentTitle" placeholder="Assignment Title" class="w-full p-2 border rounded">
+                        <textarea id="assignmentDescription" placeholder="Assignment Description" class="w-full p-2 border rounded h-24"></textarea>
+                        <input type="file" id="assignmentFile" class="w-full p-2 border rounded">
+                        <button onclick="uploadAssignment()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Upload Assignment
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Manage Students</h2>
+                    <div id="studentList" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Student Dashboard -->
+            <div id="studentDashboard" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-xl font-bold mb-4">My Assignments</h2>
+                        <div id="assignmentList" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-xl font-bold mb-4">ATKT Registration</h2>
+                        <div id="atktSubjects" class="space-y-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" class="atkt-subject" value="Mathematics">
+                                <label>Mathematics (₹500)</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" class="atkt-subject" value="Physics">
+                                <label>Physics (₹500)</label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" class="atkt-subject" value="Chemistry">
+                                <label>Chemistry (₹500)</label>
+                            </div>
+                            <div class="mt-4">
+                                <p>Total Amount: ₹<span id="totalAmount">0</span></p>
+                                <button onclick="registerATKT()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-2">
+                                    Register & Pay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-bold mb-4">Submit Assignment</h2>
+                    <div class="space-y-4">
+                        <select id="assignmentSelect" class="w-full p-2 border rounded">
+                            <option value="">Select Assignment</option>
+                        </select>
+                        <input type="file" id="submissionFile" class="w-full p-2 border rounded">
+                        <button onclick="submitAssignment()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        const appSlug = 'edushare-atkt-123456';
+
+        // Initialize MongoDB collections
+        async function initializeCollections() {
+            try {
+                const collections = ['users', 'assignments', 'submissions', 'atkt'];
+                for (const collection of collections) {
+                    await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            appSlug,
+                            action: 'create',
+                            collection,
+                            data: { initialized: true }
+                        })
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing collections:', error);
+            }
+        }
+
+        // Login functionality
+        <script>
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const userType = document.getElementById('userType').value;
+
+        // Hardcoded credentials
+        if (username === "1001" && password === "40001") {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('userInfo').textContent = `Welcome, ${username}`;
+
+            if (userType === 'teacher') {
+                document.getElementById('teacherDashboard').classList.remove('hidden');
+                loadTeacherDashboard();
+            } else {
+                document.getElementById('studentDashboard').classList.remove('hidden');
+                loadStudentDashboard();
+            }
+        } else {
+            alert('Invalid username or password');
+        }
+    }
+</script>
+
+                const data = await response.json();
+                if (data.result.length > 0) {
+                    currentUser = data.result[0];
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    document.getElementById('userInfo').textContent = `Welcome, ${currentUser.username}`;
+                    
+                    if (userType === 'teacher') {
+                        document.getElementById('teacherDashboard').classList.remove('hidden');
+                        loadTeacherDashboard();
+                    } else {
+                        document.getElementById('studentDashboard').classList.remove('hidden');
+                        loadStudentDashboard();
+                    }
+                } else {
+                    alert('Invalid credentials');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed');
+            }
+        }
+
+        // Logout functionality
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('teacherDashboard').classList.add('hidden');
+            document.getElementById('studentDashboard').classList.add('hidden');
+        }
+
+        // Teacher Dashboard Functions
+        async function loadTeacherDashboard() {
+            try {
+                // Load counts
+                const studentsResponse = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'read',
+                        collection: 'users',
+                        conditions: { userType: 'student' }
+                    })
+                });
+
+                const studentsData = await studentsResponse.json();
+                document.getElementById('studentCount').textContent = studentsData.result.length;
+
+                // Load student list
+                const studentList = document.getElementById('studentList');
+                studentList.innerHTML = studentsData.result.map(student => `
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded">
+                        <div>
+                            <p class="font-semibold">${student.username}</p>
+                            <p class="text-sm text-gray-600">Student ID: ${student._id}</p>
+                        </div>
+                        <button onclick="removeStudent('${student._id}')" class="text-red-500 hover:text-red-700">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading teacher dashboard:', error);
+            }
+        }
+
+        async function uploadAssignment() {
+            const title = document.getElementById('assignmentTitle').value;
+            const description = document.getElementById('assignmentDescription').value;
+            const file = document.getElementById('assignmentFile').files[0];
+
+            if (!title || !description || !file) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                // Upload file
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('userId', currentUser._id);
+                formData.append('appSlug', appSlug);
+
+                const uploadResponse = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/storage/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2'
+                    },
+                    body: formData
+                });
+
+                const uploadData = await uploadResponse.json();
+
+                // Save assignment
+                await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'create',
+                        collection: 'assignments',
+                        data: {
+                            title,
+                            description,
+                            fileUrl: uploadData.url,
+                            teacherId: currentUser._id,
+                            createdAt: new Date().toISOString()
+                        }
+                    })
+                });
+
+                alert('Assignment uploaded successfully');
+                document.getElementById('assignmentTitle').value = '';
+                document.getElementById('assignmentDescription').value = '';
+                document.getElementById('assignmentFile').value = '';
+            } catch (error) {
+                console.error('Error uploading assignment:', error);
+                alert('Failed to upload assignment');
+            }
+        }
+
+        // Student Dashboard Functions
+        async function loadStudentDashboard() {
+            try {
+                // Load assignments
+                const assignmentsResponse = await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'read',
+                        collection: 'assignments'
+                    })
+                });
+
+                const assignmentsData = await assignmentsResponse.json();
+                const assignmentList = document.getElementById('assignmentList');
+                assignmentList.innerHTML = assignmentsData.result.map(assignment => `
+                    <div class="p-4 bg-gray-50 rounded space-y-2">
+                        <h3 class="font-semibold">${assignment.title}</h3>
+                        <p class="text-sm text-gray-600">${assignment.description}</p>
+                        <div class="flex space-x-2">
+                            <a href="${assignment.fileUrl}" target="_blank" class="text-blue-500 hover:text-blue-700">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update assignment select
+                const assignmentSelect = document.getElementById('assignmentSelect');
+                assignmentSelect.innerHTML = '<option value="">Select Assignment</option>' +
+                    assignmentsData.result.map(assignment => 
+                        `<option value="${assignment._id}">${assignment.title}</option>`
+                    ).join('');
+
+            } catch (error) {
+                console.error('Error loading student dashboard:', error);
+            }
+        }
+
+        // ATKT Functions
+        function calculateATKTAmount() {
+            const subjects = document.querySelectorAll('.atkt-subject:checked');
+            const total = subjects.length * 500;
+            document.getElementById('totalAmount').textContent = total;
+        }
+
+        document.querySelectorAll('.atkt-subject').forEach(checkbox => {
+            checkbox.addEventListener('change', calculateATKTAmount);
+        });
+
+        async function registerATKT() {
+            const subjects = Array.from(document.querySelectorAll('.atkt-subject:checked'))
+                .map(checkbox => checkbox.value);
+            
+            if (subjects.length === 0) {
+                alert('Please select at least one subject');
+                return;
+            }
+
+            try {
+                await fetch('https://r0c8kgwocscg8gsokogwwsw4.zetaverse.one/mongodb', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fjrSbdYBZFM3UFUjuZ999z4U3nM2',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appSlug,
+                        action: 'create',
+                        collection: 'atkt',
+                        data: {
+                            studentId: currentUser._id,
+                            subjects,
+                            amount: subjects.length * 500,
+                            status: 'pending',
+                            createdAt: new Date().toISOString()
+                        }
+                    })
+                });
+
+                alert('ATKT registration successful');
+                // Simulate payment gateway redirect
+                alert('Redirecting to payment gateway...');
+            } catch (error) {
+                console.error('Error registering ATKT:', error);
+                alert('Failed to register ATKT');
+            }
+        }
+
+        // Initialize application
+        window.onload = function() {
+            initializeCollections();
+        };
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
